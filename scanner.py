@@ -22,12 +22,16 @@ def list_s3_buckets():
 
         public_access_passed = check_public_access_block(s3, bucket_name, findings)
         encryption_passed = check_bucket_encryption(s3, bucket_name, findings)
+        versioning_passed = check_bucket_versioning(s3, bucket_name, findings)
 
         if not public_access_passed:
             score -= 50
 
         if not encryption_passed:
             score -= 25
+
+        if not versioning_passed:
+            score -= 10
 
         print()
         print("Findings Summary:")
@@ -96,3 +100,18 @@ def check_bucket_encryption(s3, bucket_name, findings):
             findings.append(f"ERROR: Encryption check failed - {error_code}")
             print(f"ERROR: Encryption check failed - {error_code}")
             return False
+        
+        
+def check_bucket_versioning(s3, bucket_name, findings):
+    response = s3.get_bucket_versioning(Bucket=bucket_name)
+
+    versioning_status = response.get("Status")
+
+    if versioning_status == "Enabled":
+        findings.append("PASS: Versioning is enabled")
+        print("PASS: Versioning is enabled")
+        return True
+    else:
+        findings.append("WARNING: Versioning is disabled")
+        print("WARNING: Versioning is disabled")
+        return False
