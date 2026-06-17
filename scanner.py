@@ -15,11 +15,21 @@ def list_s3_buckets():
 
     for bucket in buckets:
         bucket_name = bucket["Name"]
-        print(f"Bucket: {bucket_name}")
-        check_public_access_block(s3, bucket_name)
-        check_bucket_encryption(s3, bucket_name)
-        print()
+        score = 100
 
+        print(f"Bucket: {bucket_name}")
+
+        public_access_passed = check_public_access_block(s3, bucket_name)
+        encryption_passed = check_bucket_encryption(s3, bucket_name)
+
+        if not public_access_passed:
+            score -= 50
+
+        if not encryption_passed:
+            score -= 25
+
+        print(f"Security Score: {score}/100")
+        print()
 
 def check_public_access_block(s3, bucket_name):
     try:
@@ -35,16 +45,20 @@ def check_public_access_block(s3, bucket_name):
 
         if all_blocked:
             print("PASS: Public Access Block is fully enabled")
+            return True
         else:
             print("WARNING: Public Access Block is only partially enabled")
+            return False
 
     except ClientError as error:
         error_code = error.response["Error"]["Code"]
 
         if error_code == "NoSuchPublicAccessBlockConfiguration":
             print("CRITICAL: Public Access Block is disabled")
+            return False
         else:
             print(f"ERROR: Public Access check failed - {error_code}")
+            return False
 
 
 def check_bucket_encryption(s3, bucket_name):
@@ -55,11 +69,14 @@ def check_bucket_encryption(s3, bucket_name):
         encryption_type = rules[0]["ApplyServerSideEncryptionByDefault"]["SSEAlgorithm"]
 
         print(f"PASS: Encryption is enabled - {encryption_type}")
-
+        return True
+    
     except ClientError as error:
         error_code = error.response["Error"]["Code"]
 
         if error_code == "ServerSideEncryptionConfigurationNotFoundError":
             print("WARNING: Encryption is disabled")
+            return False
         else:
             print(f"ERROR: Encryption check failed - {error_code}")
+            return False
