@@ -23,6 +23,7 @@ def list_s3_buckets():
         public_access_passed = check_public_access_block(s3, bucket_name, findings)
         encryption_passed = check_bucket_encryption(s3, bucket_name, findings)
         versioning_passed = check_bucket_versioning(s3, bucket_name, findings)
+        logging_passed = check_bucket_logging(s3, bucket_name, findings)
 
         if not public_access_passed:
             score -= 50
@@ -31,6 +32,9 @@ def list_s3_buckets():
             score -= 25
 
         if not versioning_passed:
+            score -= 10
+            
+        if not logging_passed:
             score -= 10
 
         print()
@@ -114,4 +118,19 @@ def check_bucket_versioning(s3, bucket_name, findings):
     else:
         findings.append("WARNING: Versioning is disabled")
         print("WARNING: Versioning is disabled")
+        return False
+    
+    
+def check_bucket_logging(s3, bucket_name, findings):
+    response = s3.get_bucket_logging(Bucket=bucket_name)
+
+    logging_config = response.get("LoggingEnabled")
+
+    if logging_config:
+        findings.append("PASS: Bucket logging is enabled")
+        print("PASS: Bucket logging is enabled")
+        return True
+    else:
+        findings.append("WARNING: Bucket logging is disabled")
+        print("WARNING: Bucket logging is disabled")
         return False
