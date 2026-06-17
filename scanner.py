@@ -15,12 +15,13 @@ def list_s3_buckets():
 
     for bucket in buckets:
         bucket_name = bucket["Name"]
+        print(f"Bucket: {bucket_name}")
         check_public_access_block(s3, bucket_name)
+        check_bucket_encryption(s3, bucket_name)
+        print()
 
 
 def check_public_access_block(s3, bucket_name):
-    print(f"Bucket: {bucket_name}")
-
     try:
         response = s3.get_public_access_block(Bucket=bucket_name)
         config = response["PublicAccessBlockConfiguration"]
@@ -33,19 +34,32 @@ def check_public_access_block(s3, bucket_name):
         )
 
         if all_blocked:
-            print("Public Access Block: ENABLED")
-            print("Status: SECURE")
+            print("PASS: Public Access Block is fully enabled")
         else:
-            print("Public Access Block: PARTIAL")
-            print("Status: WARNING")
+            print("WARNING: Public Access Block is only partially enabled")
 
     except ClientError as error:
         error_code = error.response["Error"]["Code"]
 
         if error_code == "NoSuchPublicAccessBlockConfiguration":
-            print("Public Access Block: DISABLED")
-            print("Status: CRITICAL")
+            print("CRITICAL: Public Access Block is disabled")
         else:
-            print(f"Error checking bucket: {error_code}")
+            print(f"ERROR: Public Access check failed - {error_code}")
 
-    print()
+
+def check_bucket_encryption(s3, bucket_name):
+    try:
+        response = s3.get_bucket_encryption(Bucket=bucket_name)
+
+        rules = response["ServerSideEncryptionConfiguration"]["Rules"]
+        encryption_type = rules[0]["ApplyServerSideEncryptionByDefault"]["SSEAlgorithm"]
+
+        print(f"PASS: Encryption is enabled - {encryption_type}")
+
+    except ClientError as error:
+        error_code = error.response["Error"]["Code"]
+
+        if error_code == "ServerSideEncryptionConfigurationNotFoundError":
+            print("WARNING: Encryption is disabled")
+        else:
+            print(f"ERROR: Encryption check failed - {error_code}")
