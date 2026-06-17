@@ -1,8 +1,11 @@
 
 import boto3
-from scanner import run_scan
+from scanner import list_s3_buckets
 
-print("Cloudguard Security Scan")
+
+print("CloudGuard Security Scan")
+print("Checking S3 buckets...")
 print()
 
-run_scan()
+
+list_s3_buckets()
