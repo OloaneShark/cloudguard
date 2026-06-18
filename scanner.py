@@ -157,6 +157,8 @@ def check_bucket_policy(s3, bucket_name, findings):
                 
                 if principal == "*":
                     public_policy_found = True
+                elif isinstance(principal, dict) and principal.get("AWS") == "*":
+                    public_policy_found = True
             
             if public_policy_found:
                 findings.append("CRITICAL: Bucket policy allows public access")
