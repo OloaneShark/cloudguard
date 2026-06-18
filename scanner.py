@@ -141,7 +141,9 @@ def check_bucket_policy(s3, bucket_name, findings):
     try:
         response = s3.get_bucket_policy(Bucket=bucket_name)
         policy = response.get("Policy")
-
+        print(type(policy))
+        print(policy)
+        
         if policy:
             findings.append("INFO: Bucket policy exists")
             print("INFO: Bucket policy exists")
@@ -162,3 +164,4 @@ def check_bucket_policy(s3, bucket_name, findings):
             findings.append(f"ERROR: Bucket policy check failed - {error_code}")
             print(f"ERROR: Bucket policy check failed - {error_code}")
             return False
+        
