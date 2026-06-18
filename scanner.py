@@ -1,4 +1,5 @@
 
+import json
 import boto3
 from botocore.exceptions import ClientError
 
@@ -37,6 +38,9 @@ def list_s3_buckets():
             
         if not logging_passed:
             score -= 10
+            
+        if not policy_passed:
+            score -= 50
         
         print()
         print("Findings Summary:")
@@ -141,13 +145,28 @@ def check_bucket_policy(s3, bucket_name, findings):
     try:
         response = s3.get_bucket_policy(Bucket=bucket_name)
         policy = response.get("Policy")
-        print(type(policy))
-        print(policy)
         
         if policy:
-            findings.append("INFO: Bucket policy exists")
-            print("INFO: Bucket policy exists")
-            return True
+            policy_data = json.loads(policy)
+            statements = policy_data["Statement"]
+
+            public_policy_found = False
+            
+            for statement in statements:
+                principal = statement.get("Principal")
+                
+                if principal == "*":
+                    public_policy_found = True
+            
+            if public_policy_found:
+                findings.append("CRITICAL: Bucket policy allows public access")
+                print("CRITICAL: Bucket policy allows public access")
+                return False
+            else:
+                findings.append("PASS: Bucket policy does not allow public access")
+                print("PASS: Bucket policy does not allow public access")
+                return True
+            
         else:
             findings.append("PASS: No bucket policy found")
             print("PASS: No bucket policy found")
