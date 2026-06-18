@@ -8,6 +8,8 @@ def list_s3_buckets():
     s3 = boto3.client("s3")
     response = s3.list_buckets()
     
+    report_lines = []
+    
     buckets = response.get("Buckets", [])
 
     if not buckets:
@@ -23,6 +25,7 @@ def list_s3_buckets():
         findings = []
         
         print(f"Bucket: {bucket_name}")
+        report_lines.append(f"Bucket: {bucket_name}")
 
         public_access_passed = check_public_access_block(s3, bucket_name, findings)
         encryption_passed = check_bucket_encryption(s3, bucket_name, findings)
@@ -50,18 +53,29 @@ def list_s3_buckets():
 
         for finding in findings:
             print(f"- {finding}")
-
+            report_lines.append(f"- {finding}")
+            
         total_buckets += 1
         total_score += score
         
         print(f"Security Score: {score}/100")
         print()
         
+        report_lines.append(f"Security Score: {score}/100")
+        report_lines.append("")
+        
     average_score = total_score / total_buckets
         
     print("Scan Summary:")
     print(f"Buckets Scanned: {total_buckets}")
     print(f"Average Score: {average_score:.0f}/100")
+    
+    report_lines.append("Scan Summary:")
+    report_lines.append(f"Buckets Scanned: {total_buckets}")
+    report_lines.append(f"Average Score: {average_score:.0f}/100")
+    
+    with open("cloudguard_report.txt", "w") as report_file:
+        report_file.write("\n".join(report_lines))
 
 
 def check_public_access_block(s3, bucket_name, findings):
