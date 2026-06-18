@@ -7,13 +7,16 @@ from botocore.exceptions import ClientError
 def list_s3_buckets():
     s3 = boto3.client("s3")
     response = s3.list_buckets()
-
+    
     buckets = response.get("Buckets", [])
 
     if not buckets:
         print("No S3 buckets found.")
         return
-
+        
+    total_buckets = 0
+    total_score = 0
+        
     for bucket in buckets:
         bucket_name = bucket["Name"]
         score = 100
@@ -48,8 +51,17 @@ def list_s3_buckets():
         for finding in findings:
             print(f"- {finding}")
 
+        total_buckets += 1
+        total_score += score
+        
         print(f"Security Score: {score}/100")
         print()
+        
+    average_score = total_score / total_buckets
+        
+    print("Scan Summary:")
+    print(f"Buckets Scanned: {total_buckets}")
+    print(f"Average Score: {average_score:.0f}/100")
 
 
 def check_public_access_block(s3, bucket_name, findings):
