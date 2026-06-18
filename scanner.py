@@ -24,7 +24,8 @@ def list_s3_buckets():
         encryption_passed = check_bucket_encryption(s3, bucket_name, findings)
         versioning_passed = check_bucket_versioning(s3, bucket_name, findings)
         logging_passed = check_bucket_logging(s3, bucket_name, findings)
-
+        policy_passed = check_bucket_policy(s3, bucket_name, findings)
+        
         if not public_access_passed:
             score -= 50
 
@@ -36,7 +37,7 @@ def list_s3_buckets():
             
         if not logging_passed:
             score -= 10
-
+        
         print()
         print("Findings Summary:")
 
@@ -134,3 +135,30 @@ def check_bucket_logging(s3, bucket_name, findings):
         findings.append("WARNING: Bucket logging is disabled")
         print("WARNING: Bucket logging is disabled")
         return False
+    
+    
+def check_bucket_policy(s3, bucket_name, findings):
+    try:
+        response = s3.get_bucket_policy(Bucket=bucket_name)
+        policy = response.get("Policy")
+
+        if policy:
+            findings.append("INFO: Bucket policy exists")
+            print("INFO: Bucket policy exists")
+            return True
+        else:
+            findings.append("PASS: No bucket policy found")
+            print("PASS: No bucket policy found")
+            return True
+
+    except ClientError as error:
+        error_code = error.response["Error"]["Code"]
+
+        if error_code == "NoSuchBucketPolicy":
+            findings.append("PASS: No bucket policy found")
+            print("PASS: No bucket policy found")
+            return True
+        else:
+            findings.append(f"ERROR: Bucket policy check failed - {error_code}")
+            print(f"ERROR: Bucket policy check failed - {error_code}")
+            return False
