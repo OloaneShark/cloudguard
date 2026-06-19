@@ -10,6 +10,8 @@ def list_s3_buckets():
     
     report_lines = []
     
+    json_report = []
+    
     buckets = response.get("Buckets", [])
 
     if not buckets:
@@ -64,6 +66,13 @@ def list_s3_buckets():
         report_lines.append(f"Security Score: {score}/100")
         report_lines.append("")
         
+        bucket_report = {
+            "bucket_name": bucket_name,
+            "findings": findings,
+            "security_score": score
+        }
+        json_report.append(bucket_report)
+        
     average_score = total_score / total_buckets
         
     print("Scan Summary:")
@@ -76,6 +85,9 @@ def list_s3_buckets():
     
     with open("cloudguard_report.txt", "w") as report_file:
         report_file.write("\n".join(report_lines))
+    
+    with open("cloudguard_report.json", "w") as json_file:
+        json.dump(json_report, json_file, indent=4)
 
 
 def check_public_access_block(s3, bucket_name, findings):
