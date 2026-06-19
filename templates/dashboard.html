@@ -32,9 +32,11 @@
     <ul>
         {% for scan in scan_history %}
             <li>
+                <a href="/report/{{ scan.file }}">
                 {{ scan.scan_time }} |
                 Buckets: {{ scan.total_buckets }} |
                 Average Score: {{ scan.average_score }}/100
+                </a>
             </li>
         {% endfor %}
     </ul>

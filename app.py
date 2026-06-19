@@ -62,5 +62,21 @@ def run_scan():
     return redirect(url_for("dashboard"))
 
 
+@app.route("/report/<filename>")
+def view_report(filename):
+    report_path = os.path.join("reports", filename)
+    
+    with open(report_path, "r") as file:
+        report_data = json.load(file)
+        
+    scan_history = get_scan_history()
+    
+    return render_template(
+        "dashboard.html",
+        report_data=report_data,
+        scan_history=scan_history
+    )
+
+
 if __name__ == "__main__":
     app.run(debug=True)
