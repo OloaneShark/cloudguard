@@ -26,5 +26,17 @@
             {% endfor %}
         </ul>
     {% endfor %}
+
+    <h2>Scan History</h2>
+
+    <ul>
+        {% for scan in scan_history %}
+            <li>
+                {{ scan.scan_time }} |
+                Buckets: {{ scan.total_buckets }} |
+                Average Score: {{ scan.average_score }}/100
+            </li>
+        {% endfor %}
+    </ul>
 </body>
 </html>
