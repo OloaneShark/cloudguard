@@ -1,7 +1,9 @@
 
+import os
 import json
 import boto3
 from botocore.exceptions import ClientError
+from datetime import datetime
 
 
 def list_s3_buckets():
@@ -9,8 +11,14 @@ def list_s3_buckets():
     response = s3.list_buckets()
     
     report_lines = []
-    
     json_report = []
+    
+    os.makedirs("reports", exist_ok=True)
+    
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    
+    txt_report_path = f"reports/cloudguard_report_{timestamp}.txt"
+    json_report_path = f"reports/cloudguard_report_{timestamp}.json"
     
     buckets = response.get("Buckets", [])
 
@@ -53,9 +61,17 @@ def list_s3_buckets():
         print()
         print("Findings Summary:")
 
+        warning_count = 0
+
         for finding in findings:
+            if "WARNING" in finding:
+                warning_count += 1
+                
             print(f"- {finding}")
             report_lines.append(f"- {finding}")
+            
+        print(f"Warnings: {warning_count}")
+        report_lines.append(f"Warnings: {warning_count}")
             
         total_buckets += 1
         total_score += score
@@ -83,11 +99,14 @@ def list_s3_buckets():
     report_lines.append(f"Buckets Scanned: {total_buckets}")
     report_lines.append(f"Average Score: {average_score:.0f}/100")
     
-    with open("cloudguard_report.txt", "w") as report_file:
+    with open(txt_report_path, "w") as report_file:
         report_file.write("\n".join(report_lines))
     
-    with open("cloudguard_report.json", "w") as json_file:
+    with open(json_report_path, "w") as json_file:
         json.dump(json_report, json_file, indent=4)
+        
+    print(f"Text report saved to: {txt_report_path}")
+    print(f"JSON report saved to: {json_report_path}")
 
 
 def check_public_access_block(s3, bucket_name, findings):
