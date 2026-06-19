@@ -1,0 +1,22 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CloudGuard Dashboard</title>
+</head>
+<body>
+    <h1>CloudGuard Dashboard</h1>
+
+    {% for bucket in report_data %}
+        <h2>{{ bucket.bucket_name }}</h2>
+        <p>Security Score: {{ bucket.security_score }}/100</p>
+
+        <h3>Findings</h3>
+        <ul>
+            {% for finding in bucket.findings %}
+                <li>{{ finding }}</li>
+            {% endfor %}
+        </ul>
+    {% endfor %}
+</body>
+</html>
