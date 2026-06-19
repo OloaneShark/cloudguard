@@ -1,0 +1,18 @@
+{
+    "scan_time": "2026-06-19_13-09-37",
+    "total_buckets": 1,
+    "average_score": 80,
+    "buckets": [
+        {
+            "bucket_name": "oloane-cloudguard-827648153208-us-east-1-an",
+            "findings": [
+                "PASS: Public Access Block is fully enabled",
+                "PASS: Encryption is enabled - AES256",
+                "WARNING: Versioning is disabled",
+                "WARNING: Bucket logging is disabled",
+                "PASS: Bucket policy does not allow public access"
+            ],
+            "security_score": 80
+        }
+    ]
+}

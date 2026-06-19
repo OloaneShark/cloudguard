@@ -11,7 +11,7 @@ def list_s3_buckets():
     response = s3.list_buckets()
     
     report_lines = []
-    json_report = []
+    bucket_reports = []
     
     os.makedirs("reports", exist_ok=True)
     
@@ -87,10 +87,17 @@ def list_s3_buckets():
             "findings": findings,
             "security_score": score
         }
-        json_report.append(bucket_report)
+        bucket_reports.append(bucket_report)
         
     average_score = total_score / total_buckets
-        
+    
+    full_json_report= {
+        "scan_time": timestamp,
+        "total_buckets": total_buckets,
+        "average_score": round(average_score),
+        "buckets": bucket_reports
+    }
+    
     print("Scan Summary:")
     print(f"Buckets Scanned: {total_buckets}")
     print(f"Average Score: {average_score:.0f}/100")
@@ -103,7 +110,7 @@ def list_s3_buckets():
         report_file.write("\n".join(report_lines))
     
     with open(json_report_path, "w") as json_file:
-        json.dump(json_report, json_file, indent=4)
+        json.dump(full_json_report, json_file, indent=4)
         
     print(f"Text report saved to: {txt_report_path}")
     print(f"JSON report saved to: {json_report_path}")
@@ -243,3 +250,10 @@ def check_bucket_policy(s3, bucket_name, findings):
             print(f"ERROR: Bucket policy check failed - {error_code}")
             return False
         
+
+if __name__ == "__main__":
+    print("CloudGuard Security Scan")
+    print("Chekcing S3 buckets...")
+    print()
+    
+    list_s3_buckets()

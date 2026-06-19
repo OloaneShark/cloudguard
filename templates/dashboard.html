@@ -7,7 +7,15 @@
 <body>
     <h1>CloudGuard Dashboard</h1>
 
-    {% for bucket in report_data %}
+    <a href="/scan">
+        <button>Run New Scan</button>
+    </a>
+
+    <p>Scan Time: {{ report_data.scan_time }}</p>
+    <p>Total Buckets: {{ report_data.total_buckets }}</p>
+    <p>Average Score: {{ report_data.average_score }}/100</p>
+
+    {% for bucket in report_data.buckets %}
         <h2>{{ bucket.bucket_name }}</h2>
         <p>Security Score: {{ bucket.security_score }}/100</p>
 

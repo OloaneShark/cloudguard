@@ -1,6 +1,7 @@
 """AWS Bucket implemented on June 17, 2026 at 9:47 am est"""
 
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for
+from scanner import list_s3_buckets
 import json
 import os
 import glob
@@ -24,6 +25,13 @@ def get_latest_report():
 def dashboard():
     report_data = get_latest_report()
     return render_template("dashboard.html", report_data=report_data)
+
+
+@app.route("/scan")
+def run_scan():
+    list_s3_buckets()
+    return redirect(url_for("dashboard"))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
