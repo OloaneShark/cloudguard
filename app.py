@@ -1,4 +1,7 @@
-"""AWS Bucket implemented on June 17, 2026 at 9:47 am est"""
+"""
+AWS Bucket implemented on June 17, 2026 at 9:47 am est
+Added CloudTrail security validation and remediation checks on  June 20, 2026 at 2:52 pm est
+"""
 
 from dotenv import load_dotenv
 from models import db, Scan, BucketResult, Finding
