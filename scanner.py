@@ -3,7 +3,7 @@ import os
 import json
 import boto3
 from botocore.exceptions import ClientError
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def list_s3_buckets():
@@ -44,6 +44,7 @@ def list_s3_buckets():
         policy_passed = check_bucket_policy(s3, bucket_name, findings)
         cloudtrail_passed = check_cloudtrail(findings)
         mfa_passed = check_root_mfa(findings)
+        iam_keys_passed = check_iam_access_key_age(findings)
         
         if not public_access_passed:
             score -= 50
@@ -65,6 +66,9 @@ def list_s3_buckets():
             
         if not mfa_passed:
             score -= 15
+            
+        if not iam_keys_passed:
+            score -= 10
         
         print()
         print("Findings Summary:")
@@ -322,6 +326,49 @@ def check_root_mfa(findings):
         
     except Exception as e:
         finding = f"WARNING: Could not check root MFA - {str(e)}"
+        findings.append(finding)
+        print(finding)
+        return False
+
+
+def check_iam_access_key_age(findings):
+    iam = boto3.client("iam")
+    
+    try:
+        users = iam.list_users().get("Users", [])
+        
+        if not users:
+            finding = "PASS: No IAM users found"
+            findings.append(finding)
+            print(finding)
+            return True
+        
+        old_key_found = False
+        
+        for user in users:
+            username = user["UserName"]
+            access_keys = iam.list_access_keys(UserName=username).get("AccessKeyMetadata", [])
+            
+            for key in access_keys:
+                created_date = key["CreateDate"]
+                age_days = (datetime.now(timezone.utc) - created_date).days
+                
+                if age_days > 90:
+                    finding = f"WARNING: IAM access key for {username} is {age_days} days old"
+                    findings.append(finding)
+                    print(finding)
+                    old_key_found = True
+                    
+        if old_key_found:
+            return False
+        
+        finding = "PASS: IAM access keys are under 90 days old"
+        findings.append(finding)
+        print(finding)
+        return True
+    
+    except Exception as e:
+        finding = f"WARNING: Could not check IAM access keys - {str(e)}"
         findings.append(finding)
         print(finding)
         return False
