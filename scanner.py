@@ -272,18 +272,20 @@ def check_cloudtrail(findings):
         
         for trail in trails:
             trail_name = trail["Name"]
+            is_multi_region = trail.get("IsMultiRegionTrail", False)
+            
             status = cloudtrail.get_trail_status(Name=trail_name)
             
-            if status.get("IsLogging"):
+            if status.get("IsLogging") and is_multi_region:
                 logging_trail_found = True
                 
         if logging_trail_found:
-            finding = "PASS: CloudTrail is enabled and logging"
+            finding = "PASS: CloudTrail is enabled, logging, and multi-region"
             findings.append(finding)
             print(finding)
             return True
         else:
-            finding = "WARNING: CloudTrail exists but is not logging"
+            finding = "WARNING: CloudTrail exists but is not logging as a multi-region trail"
             findings.append(finding)
             print(finding)
             return False
