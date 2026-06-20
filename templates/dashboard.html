@@ -34,7 +34,7 @@
     <ul>
         {% for scan in scan_history %}
             <li>
-                <a href="/report/{{ scan.file }}">
+                <a href="/report/{{ scan.id }}">
                 {{ scan.scan_time }} |
                 Buckets: {{ scan.total_buckets }} |
                 Average Score: {{ scan.average_score }}/100

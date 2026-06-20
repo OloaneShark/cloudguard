@@ -80,18 +80,16 @@ def get_last_report():
     
 
 def get_scan_history():
-    report_files = get_report_files()
+    scans = Scan.query.order_by(Scan.id.desc()).all()
+    
     history = []
     
-    for report_file in report_files:
-        with open(report_file, "r") as file:
-            data = json.load(file)
-            
+    for scan in scans:   
         history.append({
-            "file": os.path.basename(report_file),
-            "scan_time": data.get("scan_time"),
-            "average_score": data.get("average_score"),
-            "total_buckets": data.get("total_buckets")
+            "id": scan.id,
+            "scan_time": scan.scan_time,
+            "average_score": scan.average_score,
+            "total_buckets": scan.total_buckets
         })
     
     return history
@@ -99,7 +97,33 @@ def get_scan_history():
     
 @app.route("/")
 def dashboard():
-    report_data = get_last_report()
+    latest_scan = Scan.query.order_by(Scan.id.desc()).first()
+    
+    if not latest_scan:
+        return render_template(
+            "dashboard.html",
+            report_data={},
+            scan_history=[]
+        )
+        
+    report_data = {
+        "scan_time": latest_scan.scan_time,
+        "total_buckets": latest_scan.total_buckets,
+        "average_score": latest_scan.average_score,
+        "buckets": []
+    }
+    
+    for bucket in latest_scan.bucket_results:
+        bucket_data = {
+            "bucket_name": bucket.bucket_name,
+            "security_score": bucket.security_score,
+            "findings": [
+                finding.message for finding in bucket.findings
+            ]
+        }
+        
+        report_data["buckets"].append(bucket_data)
+        
     scan_history = get_scan_history()
     
     return render_template(
@@ -117,12 +141,27 @@ def run_scan():
     return redirect(url_for("dashboard"))
 
 
-@app.route("/report/<filename>")
-def view_report(filename):
-    report_path = os.path.join("reports", filename)
+@app.route("/report/<int:scan_id>")
+def view_report(scan_id):
+    selected_scan = Scan.query.get_or_404(scan_id)
     
-    with open(report_path, "r") as file:
-        report_data = json.load(file)
+    report_data = {
+        "scan_time": selected_scan.scan_time,
+        "total_buckets": selected_scan.total_buckets,
+        "average_score": selected_scan.average_score,
+        "buckets": []
+    }
+    
+    for bucket in selected_scan.bucket_results:
+        bucket_data = {
+            "bucket_name": bucket.bucket_name,
+            "security_score": bucket.security_score,
+            "findings": [
+                finding.message for finding in bucket.findings
+            ]
+        }
+        
+        report_data["buckets"].append(bucket_data)
         
     scan_history = get_scan_history()
     
