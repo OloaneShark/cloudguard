@@ -260,20 +260,34 @@ def check_cloudtrail(findings):
     
     try:
         response = cloudtrail.describe_trails()
-        
         trails = response.get("trailList", [])
         
-        if trails:
-            finding = "PASS: CloudTrail is enabled"
+        if not trails:
+            finding = "WARNING: No CloudTrail trails found"
+            findings.append(finding)
+            print(finding)
+            return False
+        
+        logging_trail_found = False
+        
+        for trail in trails:
+            trail_name = trail["Name"]
+            status = cloudtrail.get_trail_status(Name=trail_name)
+            
+            if status.get("IsLogging"):
+                logging_trail_found = True
+                
+        if logging_trail_found:
+            finding = "PASS: CloudTrail is enabled and logging"
             findings.append(finding)
             print(finding)
             return True
+        else:
+            finding = "WARNING: CloudTrail exists but is not logging"
+            findings.append(finding)
+            print(finding)
+            return False
         
-        finding = "WARNING: No CloudTrail trails found"
-        findings.append(finding)
-        print(finding)
-        return False
-    
     except Exception as e:
         finding = f"WARNING: Could not check CloudTrail - {str(e)}"
         findings.append(finding)
