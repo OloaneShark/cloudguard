@@ -42,6 +42,7 @@ def list_s3_buckets():
         versioning_passed = check_bucket_versioning(s3, bucket_name, findings)
         logging_passed = check_bucket_logging(s3, bucket_name, findings)
         policy_passed = check_bucket_policy(s3, bucket_name, findings)
+        cloudtrail_passed = check_cloudtrail(findings)
         
         if not public_access_passed:
             score -= 50
@@ -57,6 +58,9 @@ def list_s3_buckets():
             
         if not policy_passed:
             score -= 50
+            
+        if not cloudtrail_passed:
+            score -= 10
         
         print()
         print("Findings Summary:")
@@ -249,6 +253,32 @@ def check_bucket_policy(s3, bucket_name, findings):
             findings.append(f"ERROR: Bucket policy check failed - {error_code}")
             print(f"ERROR: Bucket policy check failed - {error_code}")
             return False
+        
+        
+def check_cloudtrail(findings):
+    cloudtrail = boto3.client("cloudtrail")
+    
+    try:
+        response = cloudtrail.describe_trails()
+        
+        trails = response.get("trailList", [])
+        
+        if trails:
+            finding = "PASS: CloudTrail is enabled"
+            findings.append(finding)
+            print(finding)
+            return True
+        
+        finding = "WARNING: No CloudTrail trails found"
+        findings.append(finding)
+        print(finding)
+        return False
+    
+    except Exception as e:
+        finding = f"WARNING: Could not check CloudTrail - {str(e)}"
+        findings.append(finding)
+        print(finding)
+        return False
         
 
 if __name__ == "__main__":
