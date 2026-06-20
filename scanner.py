@@ -43,6 +43,7 @@ def list_s3_buckets():
         logging_passed = check_bucket_logging(s3, bucket_name, findings)
         policy_passed = check_bucket_policy(s3, bucket_name, findings)
         cloudtrail_passed = check_cloudtrail(findings)
+        mfa_passed = check_root_mfa(findings)
         
         if not public_access_passed:
             score -= 50
@@ -61,6 +62,9 @@ def list_s3_buckets():
             
         if not cloudtrail_passed:
             score -= 10
+            
+        if not mfa_passed:
+            score -= 15
         
         print()
         print("Findings Summary:")
@@ -295,7 +299,33 @@ def check_cloudtrail(findings):
         findings.append(finding)
         print(finding)
         return False
+
+
+def check_root_mfa(findings):
+    iam = boto3.client("iam")
+    
+    try:
+        summary = iam.get_account_summary()
         
+        mfa_enabled = summary["SummaryMap"].get("AccountMFAEnabled")
+        
+        if mfa_enabled:
+            finding = "PASS: Root account MFA is enabled"
+            findings.append(finding)
+            print(finding)
+            return True
+        else:
+            finding = "WARNING: Root account MFA is not enabled"
+            findings.append(finding)
+            print(finding)
+            return False
+        
+    except Exception as e:
+        finding = f"WARNING: Could not check root MFA - {str(e)}"
+        findings.append(finding)
+        print(finding)
+        return False
+
 
 if __name__ == "__main__":
     print("CloudGuard Security Scan")
