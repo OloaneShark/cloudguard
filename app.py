@@ -19,6 +19,14 @@ db.init_app(app)
 
 
 def save_report_to_database(report_data):
+    existing_scan = Scan.query.filter_by(
+        scan_time=report_data["scan_time"]
+    ).first()
+    
+    if existing_scan:
+        print("Scan already saved to database")
+        return
+    
     new_scan = Scan(
         scan_time=report_data["scan_time"],
         total_buckets=report_data["total_buckets"],
@@ -57,7 +65,7 @@ def save_report_to_database(report_data):
             
             db.session.add(new_finding)
             
-        db.session.commit()
+    db.session.commit()
     
     print("Scan saved to database")
 
