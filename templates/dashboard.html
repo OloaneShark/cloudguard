@@ -3,6 +3,12 @@
 <html>
 <head>
     <title>CloudGuard Dashboard</title>
+    <style>
+        .pass { color: green; font-weight: bold; }
+        .warning { color: orange; font-weight: bold; }
+        .critical { color: red; font-weight: bold; }
+        .info { color: dodgerblue; font-weight: bold; }
+    </style>
 </head>
 <body>
     <h1>CloudGuard Dashboard</h1>
@@ -24,7 +30,17 @@
         <h3>Findings</h3>
         <ul>
             {% for finding in bucket.findings %}
-                <li>{{ finding }}</li>
+                {% if finding.startswith("PASS") %}
+                    <li class="pass">{{ finding }}</li>
+                {% elif finding.startswith("WARNING") %}
+                    <li class="warning">{{ finding }}</li>
+                {% elif finding.startswith("CRITICAL") %}
+                    <li class="critical">{{ finding }}</li>
+                {% elif finding.startswith("INFO") %}
+                    <li class="info">{{ finding }}</li>
+                {% else %}
+                    <li>{{ finding }}</li>
+                {% endif %}
             {% endfor %}
         </ul>
     {% endfor %}
