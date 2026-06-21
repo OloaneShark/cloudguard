@@ -170,21 +170,36 @@ def check_bucket_encryption(s3, bucket_name, findings):
         rules = response["ServerSideEncryptionConfiguration"]["Rules"]
         encryption_type = rules[0]["ApplyServerSideEncryptionByDefault"]["SSEAlgorithm"]
 
-        findings.append(f"PASS: Encryption is enabled - {encryption_type}")
-        print(f"PASS: Encryption is enabled - {encryption_type}")
-        return True
+        if encryption_type == "AES256":
+            finding = f"PASS: Bucket {bucket_name} uses SSE-S3 encryption (AES256)"
+            findings.append(finding)
+            print(finding)
+            return True
+        
+        elif encryption_type == "aws:kms":
+            finding = f"PASS: Bucket {bucket_name} uses SSE-KMS encryption"
+            findings.append(finding)
+            print(finding)
+            return True
+        
+        else:
+            finding = f"PASS: Bucket {bucket_name} uses encryption type {encryption_type}"
+            findings.append(finding)
+            print(finding)
+            return True
     
     except ClientError as error:
         error_code = error.response["Error"]["Code"]
 
         if error_code == "ServerSideEncryptionConfigurationNotFoundError":
-            findings.append("WARNING: Encryption is disabled")
-            print("WARNING: Encryption is disabled")
+            finding = f"WARNING: Encryption is disabled for bucket {bucket_name}"
+            findings.append(finding)
+            print(finding)
             return False
         else:
-            findings.append(f"ERROR: Encryption check failed - {error_code}")
-            print(f"ERROR: Encryption check failed - {error_code}")
-            return False
+            finding = (f"ERROR: Encryption check failed for bucket {bucket_name} - {error_code}")
+            findings.append(finding)
+            print(finding)
         
         
 def check_bucket_versioning(s3, bucket_name, findings):
