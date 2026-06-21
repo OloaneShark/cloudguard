@@ -365,6 +365,32 @@ def check_iam_access_key_age(findings):
                     findings.append(finding)
                     print(finding)
                     old_key_found = True
+                    
+                access_keys_id = key["AccessKeyId"]
+                
+                last_used_response = iam.get_access_key_last_used(
+                    AccessKeyId = access_keys_id
+                )
+                
+                last_used_info = last_used_response.get("AccessKeyLastUsed", {})
+                last_used_date = last_used_info.get("LastUsedDate")
+                
+                if last_used_date is None:
+                    finding = f"WARNING: IAM access key for {username} has never been used"
+                    findings.append(finding)
+                    print(finding)
+                    return True
+                
+                else:
+                    unused_days = (datetime.now(timezone.utc) - last_used_date).days
+                    
+                    if unused_days > 90:
+                        finding = (
+                            f"WARNING: IAM access key for {username} has not been used in {unused_days} days"
+                        )
+                        findings.append(finding)
+                        print(finding)
+                        old_key_found = True
         
         finding = f"INFO: Checked {user_count} IAM users and {key_count} access keys"
         findings.append(finding)
