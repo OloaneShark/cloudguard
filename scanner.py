@@ -336,8 +336,14 @@ def check_iam_access_key_age(findings):
     
     try:
         users = iam.list_users().get("Users", [])
+        user_count = len(users)
+        key_count = 0
         
         if not users:
+            finding = "INFO: Checked 0 IAM users and 0 access keys"
+            findings.append(finding)
+            print(finding)
+        
             finding = "PASS: No IAM users found"
             findings.append(finding)
             print(finding)
@@ -352,13 +358,17 @@ def check_iam_access_key_age(findings):
             for key in access_keys:
                 created_date = key["CreateDate"]
                 age_days = (datetime.now(timezone.utc) - created_date).days
+                key_count += 1
                 
                 if age_days > 90:
                     finding = f"WARNING: IAM access key for {username} is {age_days} days old"
                     findings.append(finding)
                     print(finding)
                     old_key_found = True
-                    
+        
+        finding = f"INFO: Checked {user_count} IAM users and {key_count} access keys"
+        findings.append(finding)
+        print(finding)  
         if old_key_found:
             return False
         
