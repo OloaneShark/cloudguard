@@ -258,12 +258,14 @@ def check_bucket_policy(s3, bucket_name, findings):
                     public_policy_found = True
             
             if public_policy_found:
-                findings.append("CRITICAL: Bucket policy allows public access")
-                print("CRITICAL: Bucket policy allows public access")
+                finding = f"CRITICAL: Bucket policy allows public access for bucket {bucket_name}"
+                findings.append(finding)
+                print(finding)
                 return False
             else:
-                findings.append("PASS: Bucket policy does not allow public access")
-                print("PASS: Bucket policy does not allow public access")
+                finding = f"PASS: Bucket policy does not allow public access for bucket {bucket_name}"
+                findings.append(finding)
+                print(finding)
                 return True
             
         else:
