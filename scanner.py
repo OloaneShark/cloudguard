@@ -193,12 +193,14 @@ def check_bucket_versioning(s3, bucket_name, findings):
     versioning_status = response.get("Status")
 
     if versioning_status == "Enabled":
-        findings.append("PASS: Versioning is enabled")
-        print("PASS: Versioning is enabled")
+        finding = f"PASS: Versioning is enabled for bucket {bucket_name}"
+        findings.append(finding)
+        print(finding)
         return True
     else:
-        findings.append("WARNING: Versioning is disabled")
-        print("WARNING: Versioning is disabled")
+        finding = f"WARNING: Versioning is disabled for bucket {bucket_name}"
+        findings.append(finding)
+        print(finding)
         return False
     
     
