@@ -113,8 +113,19 @@ def dashboard():
     if not latest_scan:
         return render_template(
             "dashboard.html",
-            report_data={},
-            scan_history=[]
+            report_data = {
+                "scan_time": "No scans yet",
+                "total_buckets": 0,
+                "average_score": 0,
+                "buckets": []
+            },
+            scan_history=[],
+            severity_counts= {
+                "PASS": 0,
+                "WARNING": 0,
+                "CRITICAL": 0,
+                "INFO": 0
+            }
         )
         
     report_data = {
