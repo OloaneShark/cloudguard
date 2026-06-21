@@ -142,12 +142,14 @@ def check_public_access_block(s3, bucket_name, findings):
         )
 
         if all_blocked:
-            findings.append("PASS: Public Access Block is fully enabled")
-            print("PASS: Public Access Block is fully enabled")
+            finding = f"PASS: Public Access Block is fully enabled for bucket {bucket_name}"
+            findings.append(finding)
+            print(finding)
             return True
         else:
-            findings.append("WARNING: Public Access Block is only partially enabled")
-            print("WARNING: Public Access Block is only partially enabled")
+            finding = f"WARNING: Public Access Block is partially enabled for bucket {bucket_name}"
+            findings.append(finding)
+            print(finding)
             return False
 
     except ClientError as error:
