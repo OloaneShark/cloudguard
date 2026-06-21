@@ -210,12 +210,14 @@ def check_bucket_logging(s3, bucket_name, findings):
     logging_config = response.get("LoggingEnabled")
 
     if logging_config:
-        findings.append("PASS: Bucket logging is enabled")
-        print("PASS: Bucket logging is enabled")
+        finding = f"PASS: Bucket logging is enabled for bucket {bucket_name}"
+        findings.append(finding)
+        print(finding)
         return True
     else:
-        findings.append("WARNING: Bucket logging is disabled")
-        print("WARNING: Bucket logging is disabled")
+        finding = f"WARNING: Bucket logging is disabled for bucket {bucket_name}"
+        findings.append(finding)
+        print(finding)
         return False
     
     
