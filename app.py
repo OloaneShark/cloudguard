@@ -124,6 +124,13 @@ def dashboard():
         "buckets": []
     }
     
+    severity_counts = {
+        "PASS": 0,
+        "WARNING": 0,
+        "CRITICAL": 0,
+        "INFO": 0
+    }
+    
     for bucket in latest_scan.bucket_results:
         bucket_data = {
             "bucket_name": bucket.bucket_name,
@@ -135,12 +142,24 @@ def dashboard():
         
         report_data["buckets"].append(bucket_data)
         
+    for bucket in report_data["buckets"]:
+        for finding in bucket["findings"]:
+            if finding.startswith("PASS"):
+                severity_counts["PASS"] += 1
+            elif finding.startswith("WARNING"):
+                severity_counts["WARNING"] += 1
+            elif finding.startswith("CRITICAL"):
+                severity_counts["CRITICAL"] += 1
+            elif finding.startswith("INFO"):
+                severity_counts["INFO"] += 1
+        
     scan_history = get_scan_history()
     
     return render_template(
         "dashboard.html",
         report_data=report_data,
-        scan_history=scan_history
+        scan_history=scan_history,
+        severity_counts=severity_counts
     )
     
 
@@ -163,6 +182,13 @@ def view_report(scan_id):
         "buckets": []
     }
     
+    severity_counts = {
+        "PASS": 0,
+        "WARNING": 0,
+        "CRITICAL": 0,
+        "INFO": 0
+    }
+    
     for bucket in selected_scan.bucket_results:
         bucket_data = {
             "bucket_name": bucket.bucket_name,
@@ -174,12 +200,24 @@ def view_report(scan_id):
         
         report_data["buckets"].append(bucket_data)
         
+    for bucket in report_data["buckets"]:
+        for finding in bucket["findings"]:
+            if finding.startswith("PASS"):
+                severity_counts["PASS"] += 1
+            elif finding.startswith("WARNING"):
+                severity_counts["WARNING"] += 1
+            elif finding.startswith("CRITICAL"):
+                severity_counts["CRITICAL"] += 1
+            elif finding.startswith("INFO"):
+                severity_counts["INFO"] += 1
+        
     scan_history = get_scan_history()
     
     return render_template(
         "dashboard.html",
         report_data=report_data,
-        scan_history=scan_history
+        scan_history=scan_history,
+        severity_counts=severity_counts
     )
 
 

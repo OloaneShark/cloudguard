@@ -23,6 +23,15 @@
     <p>Total Buckets: {{ report_data.total_buckets }}</p>
     <p>Average Score: {{ report_data.average_score }}/100</p>
 
+    <h2>Severity Summary</h2>
+
+    <ul>
+        <li class="pass">PASS: {{ severity_counts.PASS }}</li>
+        <li class="warning">WARNING: {{ severity_counts.WARNING }}</li>
+        <li class="critical">CRITICAL: {{ severity_counts.CRITICAL }}</li>
+        <li class="info">INFO: {{ severity_counts.INFO }}</li>
+    </ul>
+
     {% for bucket in report_data.buckets %}
         <h2>{{ bucket.bucket_name }}</h2>
         <p>Security Score: {{ bucket.security_score }}/100</p>
