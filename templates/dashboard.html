@@ -84,6 +84,11 @@
     <h2>Security Score Trend</h2>
 
     <canvas id="scoreTrendChart" width="400" height="150"></canvas>
+
+    <h2>Severity Trend Over Time</h2>
+
+    <canvas id="severityTrendChart" width="400" height="150"></canvas>
+
 </div>
 
     {% for bucket in report_data.buckets %}
@@ -147,6 +152,59 @@
                     y: {
                         min: 0,
                         max: 100
+                    }
+                }
+            }
+        });
+    </script>
+
+    <script>
+        const severityTrend = {{ severity_trend | tojson }};
+
+        const severityLabels = severityTrend.map(scan => scan.scan_time);
+        const passData = severityTrend.map(scan => scan.PASS);
+        const warningData = severityTrend.map(scan => scan.WARNING);
+        const criticalData = severityTrend.map(scan => scan.CRITICAL);
+        const infoData = severityTrend.map(scan => scan.INFO);
+
+        const severityCtx = document.getElementById("severityTrendChart");
+
+        new Chart(severityCtx, {
+            type: "line",
+            data: {
+                labels: severityLabels,
+                datasets: [
+                    {
+                        label: "PASS",
+                        data: passData,
+                        borderColor: "#22c55e",
+                        tension: 0.3
+                    },
+                    {
+                        label: "WARNING",
+                        data: warningData,
+                        borderColor: "#f59e0b",
+                        tension: 0.3
+                    },
+                    {
+                        label: "CRITICAL",
+                        data: criticalData,
+                        borderColor: "#ef4444",
+                        tension: 0.3
+                    },
+                    {
+                        label: "INFO",
+                        data: infoData,
+                        borderColor: "#38bdf8",
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
                     }
                 }
             }

@@ -178,12 +178,37 @@ def dashboard():
         for scan in trend_data
     ]
     
+    severity_trend = []
+    
+    for scan in trend_data:
+        counts = {
+            "scan_time": scan.scan_time,
+            "PASS": 0,
+            "WARNING": 0,
+            "CRITICAL": 0,
+            "INFO": 0
+        }
+        
+        for bucket in scan.bucket_results:
+            for finding in bucket.findings:
+                if finding.message.startswith("PASS"):
+                    counts["PASS"] += 1
+                elif finding.message.startswith("WARNING"):
+                    counts["WARNING"] += 1
+                elif finding.message.startswith("CRITICAL"):
+                    counts["CRITICAL"] += 1
+                elif finding.message.startswith("INFO"):
+                    counts["INFO"] += 1
+                    
+        severity_trend.append(counts)
+    
     return render_template(
         "dashboard.html",
         report_data=report_data,
         scan_history=scan_history,
         severity_counts=severity_counts,
-        score_trend=score_trend
+        score_trend=score_trend,
+        severity_trend=severity_trend
     )
     
 
@@ -247,12 +272,37 @@ def view_report(scan_id):
         for scan in trend_data
     ]
     
+    severity_trend = []
+    
+    for scan in trend_data:
+        counts = {
+            "scan_time": scan.scan_time,
+            "PASS": 0,
+            "WARNING": 0,
+            "CRITICAL": 0,
+            "INFO": 0
+        }
+        
+        for bucket in scan.bucket_results:
+            for finding in bucket.findings:
+                if finding.message.startswith("PASS"):
+                    counts["PASS"] += 1
+                elif finding.message.startswith("WARNING"):
+                    counts["WARNING"] += 1
+                elif finding.message.startswith("CRITICAL"):
+                    counts["CRITICAL"] += 1
+                elif finding.message.startswith("INFO"):
+                    counts["INFO"] += 1
+                    
+        severity_trend.append(counts)
+    
     return render_template(
         "dashboard.html",
         report_data=report_data,
         scan_history=scan_history,
         severity_counts=severity_counts,
-        score_trend=score_trend
+        score_trend=score_trend,
+        severity_trend=severity_trend
     )
 
 
