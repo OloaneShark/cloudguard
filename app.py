@@ -126,7 +126,8 @@ def dashboard():
                 "WARNING": 0,
                 "CRITICAL": 0,
                 "INFO": 0
-            }
+            },
+            score_trend=[]
         )
         
     report_data = {
@@ -167,11 +168,22 @@ def dashboard():
         
     scan_history = get_scan_history()
     
+    trend_data = Scan.query.order_by(Scan.id.asc()).all()
+    
+    score_trend = [
+        {
+            "scan_time": scan.scan_time,
+            "average_score": scan.average_score
+        }
+        for scan in trend_data
+    ]
+    
     return render_template(
         "dashboard.html",
         report_data=report_data,
         scan_history=scan_history,
-        severity_counts=severity_counts
+        severity_counts=severity_counts,
+        score_trend=score_trend
     )
     
 
@@ -229,7 +241,8 @@ def view_report(scan_id):
         "dashboard.html",
         report_data=report_data,
         scan_history=scan_history,
-        severity_counts=severity_counts
+        severity_counts=severity_counts,
+        score_trend=score_trend
     )
 
 

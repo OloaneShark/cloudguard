@@ -79,6 +79,17 @@
         <li class="critical">CRITICAL: {{ severity_counts.CRITICAL }}</li>
         <li class="info">INFO: {{ severity_counts.INFO }}</li>
     </ul>
+
+    <h2>Security Score Trend</h2>
+
+    <ul>
+        {% for scan in score_trend %}
+            <li>
+                {{ scan.scan_time }} |
+                Average Score: {{ scan.average_score }}/100
+            </li>
+        {% endfor %}
+    </ul>
 </div>
 
     {% for bucket in report_data.buckets %}
