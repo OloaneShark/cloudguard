@@ -237,6 +237,16 @@ def view_report(scan_id):
         
     scan_history = get_scan_history()
     
+    trend_data = Scan.query.order_by(Scan.id.asc()).all()
+
+    score_trend = [
+        {
+            "scan_time": scan.scan_time,
+            "average_score": scan.average_score
+        }
+        for scan in trend_data
+    ]
+    
     return render_template(
         "dashboard.html",
         report_data=report_data,
