@@ -3,6 +3,7 @@
 <html>
 <head>
     <title>CloudGuard Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -82,14 +83,7 @@
 
     <h2>Security Score Trend</h2>
 
-    <ul>
-        {% for scan in score_trend %}
-            <li>
-                {{ scan.scan_time }} |
-                Average Score: {{ scan.average_score }}/100
-            </li>
-        {% endfor %}
-    </ul>
+    <canvas id="scoreTrendChart" width="400" height="150"></canvas>
 </div>
 
     {% for bucket in report_data.buckets %}
@@ -129,5 +123,35 @@
             </li>
         {% endfor %}
     </ul>
+
+    <script>
+        const scoreTrend = {{ score_trend | tojson }};
+
+        const labels = scoreTrend.map(scan => scan.scan_time);
+        const scores = scoreTrend.map(scan => scan.average_score);
+
+        const ctx = document.getElementById("scoreTrendChart");
+
+        new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Average Security Score",
+                    data: scores,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100
+                    }
+                }
+            }
+        });
+    </script>
+
 </body>
 </html>
