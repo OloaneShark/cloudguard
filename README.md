@@ -24,6 +24,8 @@ Severity summary counters
 Dockerized deployment
 Gunicorn production server
 GitHub Actions CI/CD deployment to AWS EC2
+Security score trend visualization
+Severity trend visualization for PASS, WARNING, CRITICAL, and INFO findings
 
 
 Tech Stack
