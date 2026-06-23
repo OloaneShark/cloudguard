@@ -76,11 +76,22 @@ def list_s3_buckets():
         warning_count = 0
 
         for finding in findings:
-            if "WARNING" in finding:
-                warning_count += 1
+            if isinstance(finding, dict):
+                if finding["severity"] == "WARNING":
+                    warning_count += 1
+                    
+                print(f"- {finding['severity']}: {finding['message']}")
+                print(f"  Recommendation: {finding['recommendation']}")
                 
-            print(f"- {finding}")
-            report_lines.append(f"- {finding}")
+                report_lines.append(f"- {finding['severity']}: {finding['message']}")
+                report_lines.append(f"  Recommendation: {finding['recommendation']}")
+                
+            else:
+                if "WARNING" in finding:
+                    warning_count += 1
+                    
+                print(f"- {finding}")
+                report_lines.append(f"- {finding}")
             
         print(f"Warnings: {warning_count}")
         report_lines.append(f"Warnings: {warning_count}")
@@ -126,6 +137,17 @@ def list_s3_buckets():
         
     print(f"Text report saved to: {txt_report_path}")
     print(f"JSON report saved to: {json_report_path}")
+
+
+def add_finding(findings, severity, message, recommendation):
+    finding = {
+        "severity": severity,
+        "message": message,
+        "recommendation": recommendation
+    }
+
+    findings.append(finding)
+    print(f"{severity}: {message}")
 
 
 def check_public_access_block(s3, bucket_name, findings):
@@ -210,14 +232,20 @@ def check_bucket_versioning(s3, bucket_name, findings):
     versioning_status = response.get("Status")
 
     if versioning_status == "Enabled":
-        finding = f"PASS: Versioning is enabled for bucket {bucket_name}"
-        findings.append(finding)
-        print(finding)
+        add_finding(
+            findings,
+            "PASS",
+            f"Versioning is enabled for bucket {bucket_name}",
+            "No remediation needed"
+        )
         return True
     else:
-        finding = f"WARNING: Versioning is disabled for bucket {bucket_name}"
-        findings.append(finding)
-        print(finding)
+        add_finding(
+            findings,
+            "WARNING",
+            f"Versioning is disabled for bucket {bucket_name}",
+            "Enable S3 Versioning to help protect objects from accidental deletion or overwrite"
+        )
         return False
     
     

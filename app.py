@@ -52,19 +52,28 @@ def save_report_to_database(report_data):
         db.session.flush()
         
         for finding in bucket["findings"]:
-            if finding.startswith("PASS"):
-                severity = "PASS"
-            elif finding.startswith("WARNING"):
-                severity = "WARNING"
-            elif finding.startswith("CRITICAL"):
-                severity = "CRITICAL"
+            if isinstance(finding, dict):
+                severity = finding.get("severity", "INFO")
+                message = finding.get("message", "")
+                recommendation = finding.get("recommendation", "No recommendation provided.")
             else:
-                severity = "INFO"
+                message = finding
+                
+                if finding.startswith("PASS"):
+                    severity = "PASS"
+                elif finding.startswith("WARNING"):
+                    severity = "WARNING"
+                elif finding.startswith("CRITICAL"):
+                    severity = "CRITICAL"
+                else:
+                    severity = "INFO"
+
+                recommendation = "No remediation provided."
                 
             new_finding = Finding(
                 bucket_result_id=new_bucket.id,
                 severity=severity,
-                message=finding
+                message=message
             )
             
             db.session.add(new_finding)
