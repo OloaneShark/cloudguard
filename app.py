@@ -393,6 +393,11 @@ def download_report(scan_id):
                 Paragraph(display_text, styles["Normal"])
             )
             
+            if finding.recommendation and finding.recommendation != "No remediation provided.":
+                elements.append(
+                    Paragraph(f"Recommended Fix: {finding.recommendation}", styles["Normal"])
+                )
+            
         elements.append(Spacer(1, 10))
         
     doc.build(elements)
