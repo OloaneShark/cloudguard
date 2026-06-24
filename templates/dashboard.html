@@ -57,6 +57,33 @@
         li {
             margin-bottom: 6px;
         }
+
+                .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .risk-card {
+            background-color: #111827;
+            border: 1px solid #374151;
+            border-radius: 10px;
+            padding: 16px;
+        }
+
+        .risk-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .risk-card p {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
     </style>
 </head>
 <body>
@@ -80,6 +107,30 @@
         <li class="critical">CRITICAL: {{ severity_counts.CRITICAL }}</li>
         <li class="info">INFO: {{ severity_counts.INFO }}</li>
     </ul>
+
+    <h2>Risk Overview</h2>
+
+    <div class="risk-grid">
+        <div class="risk-card">
+            <h3>Total Findings</h3>
+            <p>{{ severity_counts.PASS + severity_counts.WARNING + severity_counts.CRITICAL + severity_counts.INFO }}</p>
+        </div>
+
+        <div class="risk-card">
+            <h3>Open Risks</h3>
+            <p>{{ severity_counts.WARNING + severity_counts.CRITICAL }}</p>
+        </div>
+
+        <div class="risk-card">
+            <h3>Critical Risks</h3>
+            <p>{{ severity_counts.CRITICAL }}</p>
+        </div>
+
+        <div class="risk-card">
+            <h3>Security Score</h3>
+            <p>{{ report_data.average_score }}/100</p>
+        </div>
+    </div>
 
     <h2>Security Score Trend</h2>
 
