@@ -24,7 +24,8 @@ class BucketResult(db.Model):
 
 class Finding(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    bucket_result_id = db.Column(db.Integer, db.ForeignKey("bucket_result.id"), nullable=False)
+    bucket_result_id = db.Column(db.Integer, db.ForeignKey("bucket_result.id"))
     severity = db.Column(db.String(50), nullable=False)
     message = db.Column(db.Text, nullable=False)
+    recommendation = db.Column(db.Text)
     

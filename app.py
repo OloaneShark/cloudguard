@@ -73,7 +73,8 @@ def save_report_to_database(report_data):
             new_finding = Finding(
                 bucket_result_id=new_bucket.id,
                 severity=severity,
-                message=message
+                message=message,
+                recommendation=recommendation
             )
             
             db.session.add(new_finding)
@@ -136,7 +137,8 @@ def dashboard():
                 "CRITICAL": 0,
                 "INFO": 0
             },
-            score_trend=[]
+            score_trend=[],
+            severity_trend=[]
         )
         
     report_data = {
@@ -158,7 +160,12 @@ def dashboard():
             "bucket_name": bucket.bucket_name,
             "security_score": bucket.security_score,
             "findings": [
-                finding.message for finding in bucket.findings
+                {
+                    "severity": finding.severity,
+                    "message": finding.message,
+                    "recommendation": finding.recommendation
+                }
+                for finding in bucket.findings
             ]
         }
         
@@ -166,13 +173,15 @@ def dashboard():
         
     for bucket in report_data["buckets"]:
         for finding in bucket["findings"]:
-            if finding.startswith("PASS"):
+            severity =  finding["severity"]
+            
+            if severity == ("PASS"):
                 severity_counts["PASS"] += 1
-            elif finding.startswith("WARNING"):
+            elif severity == ("WARNING"):
                 severity_counts["WARNING"] += 1
-            elif finding.startswith("CRITICAL"):
+            elif severity == ("CRITICAL"):
                 severity_counts["CRITICAL"] += 1
-            elif finding.startswith("INFO"):
+            elif severity == ("INFO"):
                 severity_counts["INFO"] += 1
         
     scan_history = get_scan_history()
@@ -252,7 +261,12 @@ def view_report(scan_id):
             "bucket_name": bucket.bucket_name,
             "security_score": bucket.security_score,
             "findings": [
-                finding.message for finding in bucket.findings
+                {
+                    "severity": finding.severity,
+                    "message": finding.message,
+                    "recommendation": finding.recommendation
+                }
+                for finding in bucket.findings
             ]
         }
         
@@ -260,13 +274,15 @@ def view_report(scan_id):
         
     for bucket in report_data["buckets"]:
         for finding in bucket["findings"]:
-            if finding.startswith("PASS"):
+            severity = finding["severity"]
+            
+            if severity == ("PASS"):
                 severity_counts["PASS"] += 1
-            elif finding.startswith("WARNING"):
+            elif severity == ("WARNING"):
                 severity_counts["WARNING"] += 1
-            elif finding.startswith("CRITICAL"):
+            elif severity == ("CRITICAL"):
                 severity_counts["CRITICAL"] += 1
-            elif finding.startswith("INFO"):
+            elif severity == ("INFO"):
                 severity_counts["INFO"] += 1
         
     scan_history = get_scan_history()

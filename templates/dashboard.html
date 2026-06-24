@@ -99,16 +99,28 @@
             <h3>Findings</h3>
             <ul>
                 {% for finding in bucket.findings %}
-                    {% if finding.startswith("PASS") %}
-                        <li class="pass">{{ finding }}</li>
-                    {% elif finding.startswith("WARNING") %}
-                        <li class="warning">{{ finding }}</li>
-                    {% elif finding.startswith("CRITICAL") %}
-                        <li class="critical">{{ finding }}</li>
-                    {% elif finding.startswith("INFO") %}
-                        <li class="info">{{ finding }}</li>
+                    {% if finding.severity == "PASS" %}
+                        <li class="pass">PASS: {{ finding.message }}</li>
+                    {% elif finding.severity == "WARNING" %}
+                        <li class="warning">
+                            WARNING: {{ finding.message }}
+                            {% if finding.recommendation %}
+                                <br>
+                                <strong>Recommended Fix:</strong> {{ finding.recommendation }}
+                            {% endif %}
+                        </li>
+                    {% elif finding.severity == "CRITICAL" %}
+                        <li class="critical">
+                            CRITICAL: {{ finding.message }}
+                            {% if finding.recommendation %}
+                                <br>
+                                <strong>Recommended Fix:</strong> {{ finding.recommendation }}
+                            {% endif %}
+                        </li>
+                    {% elif finding.severity == "INFO" %}
+                        <li class="info">INFO: {{ finding.message }}</li>
                     {% else %}
-                        <li>{{ finding }}</li>
+                        <li>{{ finding.message }}</li>
                     {% endif %}
                 {% endfor %}
             </ul>
