@@ -4,9 +4,12 @@ Added CloudTrail security validation and remediation checks on  June 20, 2026 at
 Deployed CloudGuard to AWS EC2 with Docker and PostgreSQL on June 21, 2026 at 5:19 pm est
 """
 
+from io import BytesIO
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 from dotenv import load_dotenv
 from models import db, Scan, BucketResult, Finding
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, send_file
 from scanner import list_s3_buckets
 import json
 import os
@@ -341,6 +344,66 @@ def view_report(scan_id):
         severity_counts=severity_counts,
         score_trend=score_trend,
         severity_trend=severity_trend
+    )
+
+
+@app.route("/download-report/<int:scan_id>")
+def download_report(scan_id):
+    selected_scan = Scan.query.get_or_404(scan_id)
+    
+    buffer = BytesIO()
+    
+    doc = SimpleDocTemplate(buffer)
+    styles = getSampleStyleSheet()
+    elements = []
+    
+    elements.append(
+        Paragraph(f"CloudGuard Security Report - {selected_scan.scan_time}", styles["Title"])
+    )
+    
+    elements.append(
+        Paragraph(f"Average Score: {selected_scan.average_score}/100", styles["Normal"])
+    )
+    
+    elements.append(
+        Paragraph(f"Total Buckets: {selected_scan.total_buckets}", styles["Normal"])
+    )
+    
+    elements.append(Spacer(1, 20))
+    
+    for bucket in selected_scan.bucket_results:
+        elements.append(
+            Paragraph(f"Bucket: {bucket.bucket_name}", styles["Heading2"])
+        )
+        
+        elements.append(
+            Paragraph(f"Security Score: {bucket.security_score}/100", styles["Normal"])
+        )
+        
+        for finding in bucket.findings:
+
+            message = finding.message
+
+            if message.startswith(f"{finding.severity}:"):
+                display_text = message
+            else:
+                display_text = f"{finding.severity}: {message}"
+
+            elements.append(
+                Paragraph(display_text, styles["Normal"])
+            )
+            
+        elements.append(Spacer(1, 10))
+        
+    doc.build(elements)
+    
+    buffer.seek(0)
+    
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"cloudguard_report_{selected_scan.scan_time}.pdf",
+        mimetype="application/pdf"
     )
 
 

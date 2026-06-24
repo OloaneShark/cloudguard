@@ -156,7 +156,7 @@
                     {% elif finding.severity == "WARNING" %}
                         <li class="warning">
                             {{ finding.message }}
-                            {% if finding.recommendation %}
+                            {% if finding.recommendation and finding.recommendation != "No remediation provided." %}
                                 <br>
                                 <strong>Recommended Fix:</strong> {{ finding.recommendation }}
                             {% endif %}
@@ -164,7 +164,7 @@
                     {% elif finding.severity == "CRITICAL" %}
                         <li class="critical">
                             {{ finding.message }}
-                            {% if finding.recommendation %}
+                            {% if finding.recommendation and finding.recommendation != "No remediation provided." %}
                                 <br>
                                 <strong>Recommended Fix:</strong> {{ finding.recommendation }}
                             {% endif %}
@@ -188,6 +188,9 @@
                 {{ scan.scan_time }} |
                 Buckets: {{ scan.total_buckets }} |
                 Average Score: {{ scan.average_score }}/100
+                </a>
+                <a href="/download-report/{{ scan.id }}">
+                    <button>Download PDF</button>
                 </a>
             </li>
         {% endfor %}
