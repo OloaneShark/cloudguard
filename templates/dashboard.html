@@ -146,15 +146,16 @@
         <div class="bucket-card">
             <h2>{{ bucket.bucket_name }}</h2>
             <p>Security Score: {{ bucket.security_score }}/100</p>
+            <p>Risk Level: <strong>{{ bucket.risk_level }}</strong></p>
 
             <h3>Findings</h3>
             <ul>
                 {% for finding in bucket.findings %}
                     {% if finding.severity == "PASS" %}
-                        <li class="pass">PASS: {{ finding.message }}</li>
+                        <li class="pass">{{ finding.message }}</li>
                     {% elif finding.severity == "WARNING" %}
                         <li class="warning">
-                            WARNING: {{ finding.message }}
+                            {{ finding.message }}
                             {% if finding.recommendation %}
                                 <br>
                                 <strong>Recommended Fix:</strong> {{ finding.recommendation }}
@@ -162,14 +163,14 @@
                         </li>
                     {% elif finding.severity == "CRITICAL" %}
                         <li class="critical">
-                            CRITICAL: {{ finding.message }}
+                            {{ finding.message }}
                             {% if finding.recommendation %}
                                 <br>
                                 <strong>Recommended Fix:</strong> {{ finding.recommendation }}
                             {% endif %}
                         </li>
                     {% elif finding.severity == "INFO" %}
-                        <li class="info">INFO: {{ finding.message }}</li>
+                        <li class="info">{{ finding.message }}</li>
                     {% else %}
                         <li>{{ finding.message }}</li>
                     {% endif %}

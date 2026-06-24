@@ -22,6 +22,17 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db.init_app(app)
 
 
+def calculate_risk_level(score):
+    if score >= 90:
+        return "LOW"
+    elif score >= 70:
+        return "MEDIUM"
+    elif score >= 50:
+        return "HIGH"
+    else:
+        return "CRITICAL"
+
+
 def save_report_to_database(report_data):
     existing_scan = Scan.query.filter_by(
         scan_time=report_data["scan_time"]
@@ -159,6 +170,7 @@ def dashboard():
         bucket_data = {
             "bucket_name": bucket.bucket_name,
             "security_score": bucket.security_score,
+            "risk_level": calculate_risk_level(bucket.security_score),
             "findings": [
                 {
                     "severity": finding.severity,
@@ -260,6 +272,7 @@ def view_report(scan_id):
         bucket_data = {
             "bucket_name": bucket.bucket_name,
             "security_score": bucket.security_score,
+            "risk_level": calculate_risk_level(bucket.security_score),
             "findings": [
                 {
                     "severity": finding.severity,
