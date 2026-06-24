@@ -255,14 +255,21 @@ def check_bucket_logging(s3, bucket_name, findings):
     logging_config = response.get("LoggingEnabled")
 
     if logging_config:
-        finding = f"PASS: Bucket logging is enabled for bucket {bucket_name}"
-        findings.append(finding)
-        print(finding)
+        add_finding(
+            findings,
+            "PASS",
+            f"Bucket logging is enabled for bucket {bucket_name}",
+            "No remediation needed."
+        )
         return True
+    
     else:
-        finding = f"WARNING: Bucket logging is disabled for bucket {bucket_name}"
-        findings.append(finding)
-        print(finding)
+        add_finding(
+            findings,
+            "WARNING",
+            f"Bucket logging is disabled for bucket {bucket_name}",
+            "Enable S3 server access logging or use CloudTrail data events to track object-level access activity"
+        )
         return False
     
     
