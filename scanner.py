@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 def list_s3_buckets():
     s3 = boto3.client("s3")
     response = s3.list_buckets()
+    ec2 = boto3.client("ec2")
     
     report_lines = []
     bucket_reports = []
@@ -45,6 +46,8 @@ def list_s3_buckets():
         cloudtrail_passed = check_cloudtrail(findings)
         mfa_passed = check_root_mfa(findings)
         iam_keys_passed = check_iam_access_key_age(findings)
+        
+        check_security_groups(ec2, findings)
         
         if not public_access_passed:
             score -= 50
@@ -466,6 +469,36 @@ def check_iam_access_key_age(findings):
         findings.append(finding)
         print(finding)
         return False
+
+
+def check_security_groups(ec2, findings):
+    response = ec2.describe_security_groups()
+    
+    for sg in response["SecurityGroups"]:
+        group_name =  sg["GroupName"]
+        group_id = sg["GroupId"]
+        
+        for permission in sg["IpPermissions"]:
+            from_port = permission.get("FromPort")
+            
+            for ip_range in permission.get("IpRanges", []):
+                cidr = ip_range.get("CidrIp")
+                
+                if cidr == "0.0.0.0/0" and from_port == 22:
+                    add_finding(
+                        findings,
+                        "CRITICAL",
+                        f"Security Group {group_name} ({group_id}) allows SSH from anywhere (0.0.0.0/0)",
+                        "Restrict SSH access to trusted IP addresses only."
+                    )
+                    
+                elif cidr == "0.0.0.0/0" and from_port == 5000:
+                    add_finding(
+                        findings,
+                        "WARNING",
+                        f"Security Group {group_name} ({group_id}) allows public access to port 5000",
+                        "For production, place the app behind HTTPS on ports 80/443 and restrict direct access to port 5000"
+                    )
 
 
 if __name__ == "__main__":
