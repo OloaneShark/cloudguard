@@ -142,6 +142,26 @@
 
 </div>
 
+
+{% if report_data.account_findings %}
+<div class="bucket-card">
+    <h2>Account Security Findings</h2>
+
+    <ul>
+        {% for finding in report_data.account_findings %}
+            <li class="{{ finding.severity|lower }}">
+                {{ finding.message }}
+                {% if finding.recommendation and finding.recommendation != "No remediation provided." %}
+                    <br>
+                    <strong>Recommended Fix:</strong> {{ finding.recommendation }}
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+
     {% for bucket in report_data.buckets %}
         <div class="bucket-card">
             <h2>{{ bucket.bucket_name }}</h2>

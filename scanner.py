@@ -29,6 +29,14 @@ def list_s3_buckets():
         
     total_buckets = 0
     total_score = 0
+
+    account_findings = []
+    
+    cloudtrail_passed = check_cloudtrail(account_findings)
+    mfa_passed = check_root_mfa(account_findings)
+    iam_keys_passed = check_iam_access_key_age(account_findings)
+        
+    check_security_groups(ec2, account_findings)
         
     for bucket in buckets:
         bucket_name = bucket["Name"]
@@ -43,11 +51,6 @@ def list_s3_buckets():
         versioning_passed = check_bucket_versioning(s3, bucket_name, findings)
         logging_passed = check_bucket_logging(s3, bucket_name, findings)
         policy_passed = check_bucket_policy(s3, bucket_name, findings)
-        cloudtrail_passed = check_cloudtrail(findings)
-        mfa_passed = check_root_mfa(findings)
-        iam_keys_passed = check_iam_access_key_age(findings)
-        
-        check_security_groups(ec2, findings)
         
         if not public_access_passed:
             score -= 50
@@ -63,15 +66,6 @@ def list_s3_buckets():
             
         if not policy_passed:
             score -= 50
-            
-        if not cloudtrail_passed:
-            score -= 10
-            
-        if not mfa_passed:
-            score -= 15
-            
-        if not iam_keys_passed:
-            score -= 10
         
         print()
         print("Findings Summary:")
@@ -121,6 +115,7 @@ def list_s3_buckets():
         "scan_time": timestamp,
         "total_buckets": total_buckets,
         "average_score": round(average_score),
+        "account_findings": account_findings,
         "buckets": bucket_reports
     }
     

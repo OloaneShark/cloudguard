@@ -8,7 +8,7 @@ from io import BytesIO
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from dotenv import load_dotenv
-from models import db, Scan, BucketResult, Finding
+from models import db, Scan, BucketResult, Finding, AccountFinding
 from flask import Flask, render_template, redirect, url_for, send_file
 from scanner import list_s3_buckets
 import json
@@ -53,6 +53,34 @@ def save_report_to_database(report_data):
     
     db.session.add(new_scan)
     db.session.commit()
+    
+    for finding in report_data.get("account_findings", []):
+        if isinstance(finding, dict):
+            severity = finding.get("severity", "INFO")
+            message = finding.get("message", "")
+            recommendation = finding.get("recommendation", "")
+        else:
+            message = finding
+
+            if finding.startswith("PASS"):
+                severity = "PASS"
+            elif finding.startswith("WARNING"):
+                severity = "WARNING"
+            elif finding.startswith("CRITICAL"):
+                severity = "CRITICAL"
+            else:
+                severity = "INFO"
+
+            recommendation = "No remediation provided."
+
+        new_account_finding = AccountFinding(
+            scan_id=new_scan.id,
+            severity=severity,
+            message=message,
+            recommendation=recommendation
+        )
+
+        db.session.add(new_account_finding)
     
     for bucket in report_data["buckets"]:
         
@@ -142,7 +170,8 @@ def dashboard():
                 "scan_time": "No scans yet",
                 "total_buckets": 0,
                 "average_score": 0,
-                "buckets": []
+                "buckets": [],
+                "account_findings": []
             },
             scan_history=[],
             severity_counts= {
@@ -159,7 +188,8 @@ def dashboard():
         "scan_time": latest_scan.scan_time,
         "total_buckets": latest_scan.total_buckets,
         "average_score": latest_scan.average_score,
-        "buckets": []
+        "buckets": [],
+        "account_findings": []
     }
     
     severity_counts = {
@@ -185,6 +215,13 @@ def dashboard():
         }
         
         report_data["buckets"].append(bucket_data)
+        
+    for finding in latest_scan.account_findings:
+        report_data["account_findings"].append({
+            "severity": finding.severity,
+            "message": finding.message,
+            "recommendation": finding.recommendation
+        })
         
     for bucket in report_data["buckets"]:
         for finding in bucket["findings"]:
@@ -261,7 +298,8 @@ def view_report(scan_id):
         "scan_time": selected_scan.scan_time,
         "total_buckets": selected_scan.total_buckets,
         "average_score": selected_scan.average_score,
-        "buckets": []
+        "buckets": [],
+        "account_findings": []
     }
     
     severity_counts = {
@@ -287,6 +325,13 @@ def view_report(scan_id):
         }
         
         report_data["buckets"].append(bucket_data)
+        
+        for finding in selected_scan.account_findings:
+            report_data["account_findings"].append({
+                "severity": finding.severity,
+                "message": finding.message,
+                "recommendation": finding.recommendation
+            })
         
     for bucket in report_data["buckets"]:
         for finding in bucket["findings"]:
