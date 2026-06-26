@@ -1,9 +1,27 @@
+
 CloudGuard
 
 This is a cloud security dashboard that I created that scans an AWS environment for common security misconfigurations and shows the findings through a flask web app.
 
 It performs AWS security checks using boto3, stores the scan results in PostgreSQL, and runs a dockerized app deployed on EC2 with Gunicorn.  I also included Github Actions workflow for automated deployment.
 
+
+Screenshots:
+Dashboard_Overview.png:
+Main CloudGuard dashboard displaying scan metadata, severity summaries, risk metrics, and overall security posture through the AWS environment
+
+Risk_overview.png:
+Risk overview is a security score visualization showing total findings, open risks, critical findings, and an overall security score
+
+Scan_History_download.png:
+Allows users to review previous scans and even export findings as a PDG or CSV file
+
+Security_Checks.png:
+Detailed AWS account and S3 bucket security findings with severity classification and remediation recommendations for anything detected
+
+Security_Trend_Over_Time.png:
+Historical trend visiaulization tracking PASS, WARNING, CRITICAL, and INFO findings across multiple scans to show
+    change in security posture over time
 
 
 Live Features
