@@ -10,6 +10,7 @@ def list_s3_buckets():
     s3 = boto3.client("s3")
     response = s3.list_buckets()
     ec2 = boto3.client("ec2")
+    rds = boto3.client("rds")
     
     report_lines = []
     bucket_reports = []
@@ -37,6 +38,7 @@ def list_s3_buckets():
     iam_keys_passed = check_iam_access_key_age(account_findings)
         
     check_security_groups(ec2, account_findings)
+    check_rds_instances(rds, account_findings)
         
     for bucket in buckets:
         bucket_name = bucket["Name"]
@@ -494,6 +496,51 @@ def check_security_groups(ec2, findings):
                         f"Security Group {group_name} ({group_id}) allows public access to port 5000",
                         "For production, place the app behind HTTPS on ports 80/443 and restrict direct access to port 5000"
                     )
+
+
+def check_rds_instances(rds, findings):
+    try:
+        response = rds.describe_db_instances()
+        db_instances = response.get("DBInstances", [])
+        
+        if not db_instances:
+            add_finding(findings,"INFO", "No RDS database instances found", "No remediation needed.")
+            return True
+        
+        passed = True
+        
+        for db in db_instances:
+            db_id = db["DBInstanceIdentifier"]
+            publicly_accessible = db.get("PubliclyAccessible", False)
+            storage_exncrypted = db.get("StorageEncrypted", False)
+            
+            if publicly_accessible:
+                add_finding(
+                    findings,
+                    "CRITICAL",
+                    f"RDS instance {db_id} is publicly accessible",
+                    "Disable public accessibility and restrict access through private subnets and security groups."
+                )
+                passed = False
+                
+            else:
+                add_finding(
+                    findings,
+                    "PASS",
+                    f"RDS instance {db_id} storage is encrypted",
+                    "No remediation needed"
+                )
+                
+        return passed
+    
+    except Exception as e:
+        add_finding(
+            findings,
+            "WARNING",
+            f"Could not check RDS instances - {str(e)}",
+            "Verify that the AWS credentials have permisison to call rds:DescribeDBInstances."
+        )
+        return False
 
 
 if __name__ == "__main__":

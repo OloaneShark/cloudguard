@@ -219,11 +219,15 @@ def send_critical_alert_email(critical_findings):
         
     message.set_content(body)
     
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login(sender, password)
-        smtp.send_message(message)
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(sender, password)
+            smtp.send_message(message)
+            
+        print("Critical alert email sent")
         
-    print("Critical alert email sent")
+    except Exception as e:
+        print(f"Email alert failed: {e}")
     
     
 @app.route("/")
