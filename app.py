@@ -124,6 +124,15 @@ def save_report_to_database(report_data):
     db.session.commit()
     
     print("Scan saved to database")
+    
+    critical_findings = get_critical_findings(new_scan)
+    
+    if critical_findings:
+        print("CRITICAL SECURITY ALERT")
+        print(f"{len(critical_findings)} critical findings detected")
+        
+        for finding in critical_findings:
+            print(f"- [{finding['source']}] {finding['message']}")
 
 
 def get_report_files():
@@ -157,6 +166,29 @@ def get_scan_history():
         })
     
     return history
+
+
+def get_critical_findings(scan):
+    critical_findings = []
+    
+    for finding in scan.account_findings:
+        if finding.severity == "CRITICAL":
+            critical_findings.append({
+                "source": "Account",
+                "message": finding.message,
+                "recommendation": finding.recommendation
+            })
+            
+    for bucket in scan.bucket_results:
+        for finding in bucket.findings:
+            if finding.severity == "CRITICAL":
+                critical_findings.append({
+                    "source": bucket.bucket_name,
+                    "message": finding.message,
+                    "recommendation": finding.recommendation
+                })
+            
+    return critical_findings
 
     
 @app.route("/")
