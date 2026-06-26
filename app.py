@@ -12,6 +12,8 @@ from models import db, Scan, BucketResult, Finding, AccountFinding
 from flask import Flask, render_template, redirect, url_for, send_file
 from scanner import list_s3_buckets
 from email.message import EmailMessage
+from apscheduler.schedulers.background import BackgroundScheduler
+from scanner import list_s3_buckets
 import json
 import os
 import glob
@@ -530,6 +532,34 @@ def download_report(scan_id):
 
 with app.app_context():
     db.create_all()
+
+
+def scheduled_scan():
+    print("Running scheduled CloudGuard scan...")
+
+    with app.app_context():
+        report = list_s3_buckets()
+
+        if report:
+            print("Scheduled scan returned report")
+            print(f"Scheduled scan time: {report['scan_time']}")
+
+            try:
+                save_report_to_database(report)
+                print("Scheduled scan saved to database")
+            except Exception as e:
+                print(f"Scheduled scan database save failed: {e}")
+        else:
+            print("Scheduled scan did not return a report")
+
+    print("Scheduled scan complete")
+    
+    
+scheduler = BackgroundScheduler()
+
+scheduler.add_job(func=scheduled_scan, trigger="interval", hours=24)
+
+scheduler.start()
 
 
 if __name__ == "__main__":

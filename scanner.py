@@ -137,6 +137,7 @@ def list_s3_buckets():
         
     print(f"Text report saved to: {txt_report_path}")
     print(f"JSON report saved to: {json_report_path}")
+    return full_json_report
 
 
 def add_finding(findings, severity, message, recommendation):
