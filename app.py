@@ -4,7 +4,7 @@ Added CloudTrail security validation and remediation checks on  June 20, 2026 at
 Deployed CloudGuard to AWS EC2 with Docker and PostgreSQL on June 21, 2026 at 5:19 pm est
 """
 
-from io import BytesIO
+from io import BytesIO, StringIO
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from dotenv import load_dotenv
@@ -14,6 +14,7 @@ from scanner import list_s3_buckets
 from email.message import EmailMessage
 from apscheduler.schedulers.background import BackgroundScheduler
 from scanner import list_s3_buckets
+import csv
 import json
 import os
 import glob
@@ -527,6 +528,46 @@ def download_report(scan_id):
         as_attachment=True,
         download_name=f"cloudguard_report_{selected_scan.scan_time}.pdf",
         mimetype="application/pdf"
+    )
+
+
+@app.route("/download-csv/<int:scan_id>")
+def download_csv(scan_id):
+    selected_scan = Scan.query.get_or_404(scan_id)
+    
+    output = StringIO()
+    writer = csv.writer(output)
+    
+    writer.writerow(["scan Time", "Scope", "Resource", "Severity", "Message", "Recommendation"])
+    
+    for finding in selected_scan.account_findings:
+        writer.writerow([
+            selected_scan.scan_time,
+            "Account",
+            "AWS Acocunt",
+            finding.severity,
+            finding.message,
+            finding.recommendation or ""
+        ])
+        
+    for bucket in selected_scan.bucket_results:
+        for finding in bucket.findings:
+            writer.writerow([
+                selected_scan.scan_time,
+                "S3 Bucket",
+                bucket.bucket_name,
+                finding.severity,
+                finding.message,
+                finding.recommendation  or ""
+            ])
+            
+    output.seek(0)
+    
+    return send_file(
+        BytesIO(output.getvalue().encode("utf-8")),
+        as_attachment=True,
+        download_name=f"cloudguard_findings_{selected_scan.scan_time}.csv",
+        mimetype="text/csv"
     )
 
 
