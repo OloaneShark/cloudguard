@@ -11,9 +11,11 @@ from dotenv import load_dotenv
 from models import db, Scan, BucketResult, Finding, AccountFinding
 from flask import Flask, render_template, redirect, url_for, send_file
 from scanner import list_s3_buckets
+from email.message import EmailMessage
 import json
 import os
 import glob
+import smtplib
 
 load_dotenv()
 
@@ -133,6 +135,8 @@ def save_report_to_database(report_data):
         
         for finding in critical_findings:
             print(f"- [{finding['source']}] {finding['message']}")
+            
+        send_critical_alert_email(critical_findings)
 
 
 def get_report_files():
@@ -190,6 +194,37 @@ def get_critical_findings(scan):
             
     return critical_findings
 
+
+def send_critical_alert_email(critical_findings):
+    sender = os.getenv("ALERT_EMAIL_FROM")
+    password = os.getenv("ALERT_EMAIL_PASSWORD")
+    recipient = os.getenv("ALERT_EMAIL_TO")
+    
+    if not sender or not password or not recipient:
+        print("Email alert skipped: missing email environment variables")
+        return
+    
+    message = EmailMessage()
+    message["Subject"] = "CloudGuard Critical Security Alert"
+    message["From"] = sender
+    message["To"] = recipient
+    
+    body = "CloudGuard detected critical security findings:\n\n"
+    
+    for finding in critical_findings:
+        body += f"- [{finding['source']}] {finding['message']}\n"
+        if finding["recommendation"]:
+            body += f"  Recommended Fix: {finding['recommendation']}\n"
+        body += "\n"
+        
+    message.set_content(body)
+    
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        smtp.login(sender, password)
+        smtp.send_message(message)
+        
+    print("Critical alert email sent")
+    
     
 @app.route("/")
 def dashboard():
